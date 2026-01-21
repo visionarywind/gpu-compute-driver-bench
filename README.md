@@ -103,6 +103,7 @@ Provides a scoring system for automated performance regression tracking across d
     -h       : Display this help message
     -m       : Enable MCC Compiler (default: OFF)
     -n       : Enable NVCC Compiler (default: OFF)
+    -x       : Enable MACA Compiler (default: OFF)
     -d       : Enable Debug Mode (default: OFF)
   ```
 
