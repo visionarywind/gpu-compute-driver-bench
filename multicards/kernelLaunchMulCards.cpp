@@ -71,6 +71,10 @@ public:
     }
 #ifdef TEST_ON_NVIDIA
     std::string codeObjectFile = std::string("./EmptyKernel.ptx");
+#endif
+
+#ifdef TEST_ON_CUBRIDGE
+    std::string codeObjectFile = std::string("./EmptyKernel.mcfb");
 #else
     std::string codeObjectFile = std::string("./EmptyKernel.elf");
 #endif

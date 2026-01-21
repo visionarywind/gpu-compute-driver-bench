@@ -20,6 +20,7 @@ DEFAULT_JOBS=12
 ENABLE_MCC=OFF
 ENABLE_NVCC=OFF
 ENABLE_DEBUG=OFF
+ENABLE_CUBRIDGE=OFF
 
 # Function to print usage information
 print_usage() {
@@ -29,13 +30,14 @@ print_usage() {
     echo "  -j N     : Number of parallel jobs for make (default: j12)"
     echo "  -h       : Display this help message"
     echo "  -m       : Enable MCC Compiler (default: OFF)"
+    echo "  -x       : Enable MACA Compiler (default: OFF)"
     echo "  -n       : Enable NVCC Compiler (default: OFF), Cannot enable both MCC and NVCC at the same time"
     echo "  -d       : Enable Debug Mode (default: OFF)"
     exit 1
 }
 
 # Process command line arguments
-while getopts "Rj:nmdh" opt; do
+while getopts "Rj:nmdxh" opt; do
     case $opt in
         R)
             REBUILD=true
@@ -51,6 +53,9 @@ while getopts "Rj:nmdh" opt; do
             ;;
         d)
             ENABLE_DEBUG=ON
+            ;;
+        x)
+            ENABLE_CUBRIDGE=ON
             ;;
         h)
             print_usage
@@ -70,7 +75,11 @@ if [ ! -d "$BUILD_DIR" ]; then
     echo "Creating '$BUILD_DIR' directory..."
     mkdir "$BUILD_DIR"
     cd "$BUILD_DIR"
-    cmake .. "-DENABLE_MCC=$ENABLE_MCC" "-DENABLE_DEBUG=$ENABLE_DEBUG" "-DENABLE_NVCC=$ENABLE_NVCC"
+    if [ "$ENABLE_CUBRIDGE" = "ON" ]; then
+        cmake_maca .. "-DENABLE_CUBRIDGE=ON" "-DENABLE_DEBUG=$ENABLE_DEBUG"
+    else
+        cmake .. "-DENABLE_MCC=$ENABLE_MCC" "-DENABLE_DEBUG=$ENABLE_DEBUG" "-DENABLE_NVCC=$ENABLE_NVCC"
+    fi
     cd ..
 fi
 
@@ -78,15 +87,20 @@ fi
 cd "$BUILD_DIR"
 
 # If REBUILD is true, clean build directory and rebuild
-if [ "$REBUILD" = true ]; then
-    echo "Cleaning build directory..."
-    rm -rf *
-    cmake .. "-DENABLE_MCC=$ENABLE_MCC" "-DENABLE_DEBUG=$ENABLE_DEBUG" "-DENABLE_NVCC=$ENABLE_NVCC"
-    make "-j$JOBS"
+if [ ! -f "Makefile" ] || [ "$REBUILD" = true ]; then
+    if [ "$ENABLE_CUBRIDGE" = "ON" ]; then
+        cmake_maca .. "-DENABLE_CUBRIDGE=ON" "-DENABLE_DEBUG=$ENABLE_DEBUG"
+        make_maca "-j$JOBS"
+    else
+        cmake .. "-DENABLE_MCC=$ENABLE_MCC" "-DENABLE_DEBUG=$ENABLE_DEBUG" "-DENABLE_NVCC=$ENABLE_NVCC"
+        make "-j$JOBS"
+    fi
 else
-    # Build without cleaning
-    echo "building with $JOBS JOBS"
-    make "-j$JOBS"
+    if [ "$ENABLE_CUBRIDGE" = "ON" ]; then
+        make_maca "-j$JOBS"
+    else
+        make "-j$JOBS"
+    fi
 fi
 
 echo "Build completed."

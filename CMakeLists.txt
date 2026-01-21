@@ -7,19 +7,44 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_MCC "Enable MCC Compiler, Default use g++" OFF)
 option(ENABLE_NVCC "Enable NVCC Compiler, Default use g++" OFF)
+option(ENABLE_CUBRIDGE "Build with cu-bridge toolchain (MetaX/MACA)" OFF)
 option(ENABLE_DEBUG "Enable Debug Mode, Default Release Mode" OFF)
 
-if(ENABLE_NVCC)
+set(CUDA_ROOT "/usr/local/cuda")
+if(DEFINED ENV{CUDA_PATH})
+  set(CUDA_ROOT "$ENV{CUDA_PATH}")
+endif()
+set(MACA_ROOT "/opt/maca")
+if(DEFINED ENV{MACA_PATH})
+  set(MACA_ROOT "$ENV{MACA_PATH}")
+endif()
+
+if(ENABLE_CUBRIDGE)
+    # cu-bridge doc’s “CMake build” path uses cmake_maca/make_maca and CUDA_PATH redirection.
+    # Keep this project in C/CXX mode and compile CUDA sources via nvcc wrapper if needed.
+    project(${PROJECT_NAME} LANGUAGES CUDA C CXX)
+
+    include_directories(
+      ${CMAKE_CURRENT_SOURCE_DIR}/common/include
+      ${CUDA_ROOT}/include
+      /usr/include/libcpuid
+      /usr/include/eigen3
+    )
+    link_directories(${CUDA_ROOT}/lib64)
+    link_directories(${MACA_ROOT}/lib)
+    add_compile_definitions(EIGEN_NO_CUDA EIGEN_NO_HALF)
+    add_definitions(-DTEST_ON_CUBRIDGE)
+elseif(ENABLE_NVCC)
     project(${PROJECT_NAME} LANGUAGES CUDA C CXX)
     include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/common/include
-    /usr/local/cuda/include
+    ${CUDA_ROOT}/include
     /usr/include/libcpuid
     /usr/include/eigen3
     )
-    link_directories(/usr/local/cuda/targets/x86_64-linux/lib/stubs)
-    link_directories(/usr/local/cuda/targets/x86_64-linux/lib)
-    link_directories(/usr/local/cuda/lib64)
+    link_directories(${CUDA_ROOT}/include/targets/x86_64-linux/lib/stubs)
+    link_directories(${CUDA_ROOT}/include/targets/x86_64-linux/lib)
+    link_directories(${CUDA_ROOT}/include/lib64)
     add_definitions(-DTEST_ON_NVIDIA)
 else()
     project(${PROJECT_NAME} LANGUAGES C CXX)
