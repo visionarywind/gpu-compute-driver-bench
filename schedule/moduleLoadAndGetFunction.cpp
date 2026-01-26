@@ -36,6 +36,10 @@ static const int SamplesCount    = 20;
 static const int IterationsCount = 2;
 #ifdef TEST_ON_NVIDIA
 const std::string fileSuffix = ".ptx";
+#endif
+
+#ifdef TEST_ON_CUBRIDGE
+const std::string fileSuffix = ".mcfb";
 #else
 const std::string fileSuffix = ".elf";
 #endif

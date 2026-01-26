@@ -60,6 +60,10 @@ public:
         streamNum = experimentValue.Value;
 #ifdef TEST_ON_NVIDIA
         codeObjectFile = std::string("./cdm_parallelism.ptx");
+#endif
+
+#ifdef TEST_ON_CUBRIDGE
+        codeObjectFile = std::string("./cdm_parallelism.mcfb");
 #else
         codeObjectFile = std::string("./cdm_parallelism.elf");
 #endif

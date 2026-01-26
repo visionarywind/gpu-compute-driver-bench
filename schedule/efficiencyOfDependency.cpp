@@ -57,10 +57,13 @@ public:
     }
     void setUp(const TestFixture::ExperimentValue& experimentValue) override {
 #ifdef TEST_ON_NVIDIA
-        codeObjectFile = std::string("./VectorAdd.ptx");
-        ;
+    codeObjectFile = std::string("./VectorAdd.ptx");
+#endif
+
+#ifdef TEST_ON_CUBRIDGE
+    codeObjectFile = std::string("./VectorAdd.mcfb");
 #else
-        codeObjectFile = std::string("./VectorAdd.elf");
+    codeObjectFile = std::string("./VectorAdd.elf");
 #endif
         functionName = std::string("_Z9VectorAddPiS_");
         elementNum   = 1e7;
